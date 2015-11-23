@@ -75,7 +75,7 @@ public class Login extends HttpServlet {
     static void doDefaultLogin(String userName, String userPass, HttpServletResponse response) throws IOException {
         //TODO check for specific SQL exceptions and give corresponding error messages
         // login
-        UUID sid = null;
+        UUID sid;
         try {
             sid = login(userName, userPass);
         } catch (InvalidParameterException e) {
@@ -93,7 +93,7 @@ public class Login extends HttpServlet {
 
         // return the new session ID
         Json responseJson = new Json();
-        responseJson.addAttribute("success", "true");
+        responseJson.addAttribute("success", true);
         responseJson.addAttribute("sessionID", sid.toString());
         response.getWriter().write(responseJson.toString());
         response.flushBuffer();
@@ -108,7 +108,6 @@ public class Login extends HttpServlet {
         st.setString(2, userPass);
         st.setString(3, salt);
         st.execute();
-
 
         String doubleHash = st.getString(1);
 

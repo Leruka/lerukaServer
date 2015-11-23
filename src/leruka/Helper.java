@@ -40,7 +40,7 @@ public class Helper {
         response.setStatus(statusCode);
         // Create tht response Json
         Json responseJson = new Json();
-        responseJson.addAttribute("success", "false"); //TODO allow bool
+        responseJson.addAttribute("success", false);
         responseJson.addAttribute("errorCode", errorCode);
         responseJson.addAttribute("errorMessage", message);
 
