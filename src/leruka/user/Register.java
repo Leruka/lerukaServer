@@ -45,7 +45,11 @@ public class Register extends javax.servlet.http.HttpServlet {
         } catch (SQLException e) {
             response.setStatus(HttpStatics.HTTP_STATUS_SQL_EXCEPTION);
             Log.wrn("Could create a new user, due to a SQL exception!");
-            e.printStackTrace();
+            Log.inf("Error Code: " + e.getErrorCode());
+            Log.inf("Error Message: " + e.getMessage());
+            // Answer with message: user used
+            Helper.answerError(response, HttpStatics.HTTP_STATUS_SQL_EXCEPTION, ErrorCodes.USER_NAME_USED,
+                    "The username is already used");
             return;
         }
 
