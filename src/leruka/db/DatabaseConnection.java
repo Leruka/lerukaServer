@@ -24,6 +24,14 @@ public class DatabaseConnection {
     }
 
     public static Connection getCurrentConnection() {
+        // Test if the database connection is valid, and recreate if not. The test usually takes less than 1ms
+        try {
+            if (!connection.isValid(1)) {
+                createConnection();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return connection;
     }
 
