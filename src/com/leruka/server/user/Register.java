@@ -1,10 +1,10 @@
-package leruka.user;
+package com.leruka.server.user;
 
 import de.leifb.objectJson.Json;
-import leruka.ErrorCodes;
-import leruka.HttpStatics;
-import leruka.Helper;
-import leruka.Log;
+import com.leruka.server.ErrorCodes;
+import com.leruka.server.HttpStatics;
+import com.leruka.server.Helper;
+import com.leruka.server.Log;
 
 import java.io.IOException;
 import java.sql.CallableStatement;

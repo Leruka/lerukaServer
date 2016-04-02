@@ -1,4 +1,4 @@
-package leruka.exception;
+package com.leruka.server.exception;
 
 /**
  * Created by leif on 05.11.15.

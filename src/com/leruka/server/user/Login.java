@@ -1,11 +1,11 @@
-package leruka.user;
+package com.leruka.server.user;
 
 import de.leifb.objectJson.Json;
-import leruka.ErrorCodes;
-import leruka.Helper;
-import leruka.HttpStatics;
-import leruka.exception.InvalidParameterException;
-import leruka.Log;
+import com.leruka.server.ErrorCodes;
+import com.leruka.server.Helper;
+import com.leruka.server.HttpStatics;
+import com.leruka.server.exception.InvalidParameterException;
+import com.leruka.server.Log;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;

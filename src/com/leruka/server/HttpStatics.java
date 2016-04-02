@@ -1,4 +1,4 @@
-package leruka;
+package com.leruka.server;
 
 import javax.servlet.http.HttpServletResponse;
 

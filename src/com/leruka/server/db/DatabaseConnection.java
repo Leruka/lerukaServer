@@ -1,6 +1,6 @@
-package leruka.db;
+package com.leruka.server.db;
 
-import leruka.Log;
+import com.leruka.server.Log;
 
 import java.io.*;
 import java.sql.Connection;

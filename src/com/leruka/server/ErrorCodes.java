@@ -1,4 +1,4 @@
-package leruka;
+package com.leruka.server;
 
 /**
  * Created by leif on 11.11.15.

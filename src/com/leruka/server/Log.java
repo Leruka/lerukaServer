@@ -1,4 +1,4 @@
-package leruka;
+package com.leruka.server;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

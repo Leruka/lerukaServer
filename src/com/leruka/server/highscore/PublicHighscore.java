@@ -1,4 +1,4 @@
-package leruka.highscore;
+package com.leruka.server.highscore;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
