@@ -1,6 +1,5 @@
 package com.leruka.server.user;
 
-import de.leifb.objectJson.Json;
 import com.leruka.server.ErrorCodes;
 import com.leruka.server.Helper;
 import com.leruka.server.HttpStatics;
@@ -15,31 +14,32 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.UUID;
 
+import com.leruka.protobuf.User;
+
 /**
  * Created by leif on 05.11.15.
+ *
+ * This class handles login requests
  */
 public class Login extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         // Check content Type
-        if (!request.getContentType().equals("application/json")) {
+        if (!request.getContentType().equals("application/x-protobuf")) {
             Helper.answerError(response,
                     HttpStatics.HTTP_STATUS_WRONG_CONTENT_TYPE,
                     ErrorCodes.REQUEST_CONTENT_TYPE_NOT_JSON,
-                    "To log in a json with the attributes user and pass is needed.");
+                    "To log in, use the login protobuf message.");
             return;
         }
 
-
         // Get params
-        Json input = Helper.getRequestJson(request);
-        String userName = input.getString("userName");
-        String userPass = input.getString("passwordHash");
-
-        Log.inf("Login Request with pw: " + userPass);
+        User.RequestLogin requestObject = User.RequestLogin.parseFrom(request.getInputStream());
+        String userName = requestObject.getName();
+        String userPass = requestObject.getPassword();
 
         // Validate syntactical
-        if (!User.isValidUserPw(userName, userPass)) {
+        if (!Validation.isValidUserPw(userName, userPass)) {
             Helper.answerError(response, HttpStatics.HTTP_STATUS_INVALID_PARAMS, ErrorCodes.USER_PASS_INVALID, "NEIN");
             return;
         }
@@ -74,6 +74,7 @@ public class Login extends HttpServlet {
 
     static void doDefaultLogin(String userName, String userPass, HttpServletResponse response) throws IOException {
         //TODO check for specific SQL exceptions and give corresponding error messages
+        //TODO Respond with protobuf objects on errors
         // login
         UUID sid;
         try {
@@ -92,10 +93,12 @@ public class Login extends HttpServlet {
         }
 
         // return the new session ID
-        Json responseJson = new Json();
-        responseJson.addAttribute("success", true);
-        responseJson.addAttribute("sessionID", sid.toString());
-        response.getWriter().write(responseJson.toString());
+        User.ResponseLogin responseObject = User.ResponseLogin.newBuilder()
+                .setSuccess(true)
+                .setSessionID(sid.toString())
+                .build();
+
+        response.getWriter().write(responseObject.toString());
         response.flushBuffer();
     }
 
@@ -153,15 +156,15 @@ public class Login extends HttpServlet {
             this.dbPass = dbPass;
         }
 
-        public int getUserID() {
+        int getUserID() {
             return userID;
         }
 
-        public String getSalt() {
+        String getSalt() {
             return salt;
         }
 
-        public String getDbPass() {
+        String getDbPass() {
             return dbPass;
         }
     }

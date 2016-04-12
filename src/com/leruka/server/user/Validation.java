@@ -3,7 +3,7 @@ package com.leruka.server.user;
 /**
  * Created by leif on 05.11.15.
  */
-public class User {
+public class Validation {
 
 
     private static final int HASH_LENGTH = 64;

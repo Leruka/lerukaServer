@@ -1,10 +1,12 @@
 package com.leruka.server.user;
 
-import de.leifb.objectJson.Json;
 import com.leruka.server.ErrorCodes;
 import com.leruka.server.HttpStatics;
 import com.leruka.server.Helper;
 import com.leruka.server.Log;
+import com.leruka.server.db.DatabaseConnection;
+
+import com.leruka.protobuf.User;
 
 import java.io.IOException;
 import java.sql.CallableStatement;
@@ -16,24 +18,22 @@ public class Register extends javax.servlet.http.HttpServlet {
     protected void doPost(javax.servlet.http.HttpServletRequest request, javax.servlet.http.HttpServletResponse response) throws javax.servlet.ServletException, IOException {
 
         // Check content Type
-        if (!request.getContentType().equals("application/json")) {
+        if (!request.getContentType().equals("application/x-protobuf")) {
             Helper.answerError(response,
                     HttpStatics.HTTP_STATUS_WRONG_CONTENT_TYPE,
                     ErrorCodes.REQUEST_CONTENT_TYPE_NOT_JSON,
-                    "To create a user a json with the attributes user and pass is needed.");
+                    "To create a user, use the register protobuf message.");
             Log.inf("Register request with wrong content type. canceling.");
             return;
         }
 
         // Get params
-        Json input = Helper.getRequestJson(request);
-        String userName = input.getString("userName");
-        String userPass = input.getString("passwordHash");
-
-        Log.inf("Register Request with pw: " + userPass);
+        User.RequestRegister requestObject = User.RequestRegister.parseFrom(request.getInputStream());
+        String userName = requestObject.getName();
+        String userPass = requestObject.getPassword();
 
         // Validate
-        if (!User.isValidUserPw(userName, userPass)) {
+        if (!Validation.isValidUserPw(userName, userPass)) {
             Log.inf("Register request with invalid parameters received.");
             response.setStatus(HttpStatics.HTTP_STATUS_INVALID_PARAMS);
             return;
@@ -77,8 +77,8 @@ public class Register extends javax.servlet.http.HttpServlet {
      * @param userPass The (already once hashed!) password of the new user
      * @throws SQLException
      */
-    void createNewUser(String userName, String userPass) throws SQLException {
-        CallableStatement proc = leruka.db.DatabaseConnection.getCurrentConnection()
+    private void createNewUser(String userName, String userPass) throws SQLException {
+        CallableStatement proc = DatabaseConnection.getCurrentConnection()
                 .prepareCall("{ call create_user(?, ?) }");
         proc.setString(1, userName);
         proc.setString(2, userPass);
