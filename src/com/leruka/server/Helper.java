@@ -12,6 +12,7 @@ import java.io.IOException;
  */
 public class Helper {
 
+
     public static Json getRequestJson(HttpServletRequest request) {
         try {
             StringBuilder buffer = new StringBuilder();

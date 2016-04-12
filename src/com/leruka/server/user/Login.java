@@ -101,7 +101,7 @@ public class Login extends HttpServlet {
 
     private static boolean isPasswordValid(String userPass, String dbPass, String salt) throws SQLException {
         // hash the password in the database to ensure, that hashing is always done the same way
-        CallableStatement st = leruka.db.DatabaseConnection.getCurrentConnection().prepareCall(
+        CallableStatement st = com.leruka.server.db.DatabaseConnection.getCurrentConnection().prepareCall(
                 "{ ? = call hash_pw(?,?) }"
         );
         st.registerOutParameter(1, Types.CHAR);
@@ -118,7 +118,7 @@ public class Login extends HttpServlet {
 
     private static DatabaseUser getDatabaseUser(String userName) throws InvalidParameterException, SQLException {
         DatabaseUser dbUser;
-        PreparedStatement st = leruka.db.DatabaseConnection.getCurrentConnection().prepareStatement(
+        PreparedStatement st = com.leruka.server.db.DatabaseConnection.getCurrentConnection().prepareStatement(
                 "SELECT userID, salt, passwordHash FROM lerukatest.User WHERE name = ?"
         );
         st.setString(1, userName);

@@ -1,4 +1,4 @@
-package leruka.user;
+package com.leruka.server.user;
 
 import java.util.*;
 
