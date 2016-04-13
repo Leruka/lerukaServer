@@ -3,6 +3,7 @@ package com.leruka.server.user;
 import com.leruka.server.ErrorCodes;
 import com.leruka.server.Helper;
 import com.leruka.server.HttpStatics;
+import com.leruka.server.db.DatabaseConnection;
 import com.leruka.server.exception.InvalidParameterException;
 import com.leruka.server.Log;
 
@@ -104,7 +105,7 @@ public class Login extends HttpServlet {
 
     private static boolean isPasswordValid(String userPass, String dbPass, String salt) throws SQLException {
         // hash the password in the database to ensure, that hashing is always done the same way
-        CallableStatement st = com.leruka.server.db.DatabaseConnection.getCurrentConnection().prepareCall(
+        CallableStatement st = DatabaseConnection.getCurrentConnection().prepareCall(
                 "{ ? = call hash_pw(?,?) }"
         );
         st.registerOutParameter(1, Types.CHAR);
