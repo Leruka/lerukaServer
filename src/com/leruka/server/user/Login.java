@@ -98,8 +98,8 @@ public class Login extends HttpServlet {
                 .setSessionID(sid.toString())
                 .build();
 
-        response.getWriter().write(responseObject.toString());
-        response.flushBuffer();
+        response.getOutputStream().write(responseObject.toByteArray());
+        response.getOutputStream().flush();
     }
 
     private static boolean isPasswordValid(String userPass, String dbPass, String salt) throws SQLException {

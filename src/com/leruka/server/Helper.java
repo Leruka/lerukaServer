@@ -1,10 +1,6 @@
 package com.leruka.server;
 
-import de.leifb.objectJson.Json;
-
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
 import java.io.IOException;
 
 /**
@@ -12,42 +8,24 @@ import java.io.IOException;
  */
 public class Helper {
 
-
-    public static Json getRequestJson(HttpServletRequest request) {
-        try {
-            StringBuilder buffer = new StringBuilder();
-            BufferedReader reader = request.getReader();
-
-            String line;
-            while((line = reader.readLine()) != null){
-                buffer.append(line);
-            }
-
-            return new Json(buffer.toString());
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return new Json();
-    }
-
     public static void answerError(
             HttpServletResponse response,
             int statusCode,
             int errorCode,
             String message) {
 
+        //TODO this needs a rework!
+
         // Set the response Code
         response.setStatus(statusCode);
         // Create tht response Json
-        Json responseJson = new Json();
-        responseJson.addAttribute("success", false);
-        responseJson.addAttribute("errorCode", errorCode);
-        responseJson.addAttribute("errorMessage", message);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("success=false;errorCode=").append(errorCode).append("errorMessage=").append(message);
 
         // Write the response
         try {
-            response.getWriter().write(responseJson.toString());
+            response.getWriter().write(sb.toString());
             response.flushBuffer();
         } catch (IOException e) {
             // nothing to do than logging the error
