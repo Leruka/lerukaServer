@@ -60,11 +60,11 @@ public class SessionManager {
 
     /**
      * The same as getUserId(UUID sid), but parses the UUID from a string. When parsing, an exception may be thrown.
-     * @param string The string representing the session id
+     * @param sid The string representing the session id
      * @return The userID bound to the Session or -1 if the Session is invalid
      */
-    public static int getUserID(String string) throws IllegalArgumentException {
-        return SessionManager.getUserID(UUID.fromString(string));
+    public static int getUserID(String sid) throws IllegalArgumentException {
+        return SessionManager.getUserID(UUID.fromString(sid));
     }
 
     /**
@@ -105,13 +105,7 @@ public class SessionManager {
             // Generate an new session id
             this.sid = UUID.randomUUID();
             // create the expire task and timer
-            this.expireTask = new TimerTask() {
-                @Override
-                public void run() {
-                    endSession(Session.this);
-                }
-            };
-            this.expireTimer = new Timer();
+            this.resetTimerTask();
             // schedule the expiration
             this.expireTimer.schedule(this.expireTask, SESSION_DURATION);
         }
@@ -132,7 +126,21 @@ public class SessionManager {
          */
         void resetSessionTime() {
             this.quitExpiration();
+            this.resetTimerTask();
             this.expireTimer.schedule(this.expireTask, SESSION_DURATION);
+        }
+
+        /**
+         * Resets (or creates) the expire timer and the expire task.
+         */
+        void resetTimerTask() {
+            this.expireTask = new TimerTask() {
+                @Override
+                public void run() {
+                    endSession(Session.this);
+                }
+            };
+            this.expireTimer = new Timer();
         }
 
         /**
