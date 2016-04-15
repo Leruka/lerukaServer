@@ -19,6 +19,7 @@ import java.util.List;
  * Created by leif on 09.11.15.
  */
 public class PublicHighscore extends HttpServlet {
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setStatus(HttpStatics.HTTP_STATUS_WRONG_METHOD);
     }
@@ -28,14 +29,13 @@ public class PublicHighscore extends HttpServlet {
         // Get recent data
         List<Highscore.Score> data = new ArrayList<>();
         try {
-            //TODO when sp has been adjusted, take user name, not the id
             Statement st = DatabaseConnection.getCurrentConnection().createStatement();
             String sql = ("CALL get_public_score()");
             ResultSet rs = st.executeQuery(sql);
             int rankCount = 0;
             while(rs.next()) {
                 data.add(Highscore.Score.newBuilder()
-                        .setUserName(Integer.toString(rs.getInt("userID")))
+                        .setUserName(rs.getString("name"))
                         .setScore(rs.getInt("score"))
                         .setRank(++rankCount).build()
                 );
@@ -47,12 +47,8 @@ public class PublicHighscore extends HttpServlet {
         }
 
         // Create the response
-        Highscore.ResponseGlobalScores responseObject = Highscore.ResponseGlobalScores.newBuilder()
+        Highscore.ResponseScores responseObject = Highscore.ResponseScores.newBuilder()
                 .addAllScores(data).build();
-
-        for (Highscore.Score s: data) {
-            Log.inf("Score: " + s.getUserName() + ";" + s.getScore());
-        }
 
         // send response
         response.getOutputStream().write(responseObject.toByteArray());

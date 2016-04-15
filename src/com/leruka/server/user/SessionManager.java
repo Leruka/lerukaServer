@@ -48,7 +48,7 @@ public class SessionManager {
      * @param sid The ID of the Session
      * @return The userID bound to the Session or -1 if the Session is invalid
      */
-    static int getUserID(UUID sid) {
+    public static int getUserID(UUID sid) {
         for (Session s : sessions) {
             if (s.getSid().equals(sid)) {
                 s.resetSessionTime();
@@ -56,6 +56,15 @@ public class SessionManager {
             }
         }
         return -1;
+    }
+
+    /**
+     * The same as getUserId(UUID sid), but parses the UUID from a string. When parsing, an exception may be thrown.
+     * @param string The string representing the session id
+     * @return The userID bound to the Session or -1 if the Session is invalid
+     */
+    public static int getUserID(String string) throws IllegalArgumentException {
+        return SessionManager.getUserID(UUID.fromString(string));
     }
 
     /**
