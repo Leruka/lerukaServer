@@ -1,5 +1,8 @@
 package com.leruka.server;
 
+import com.leruka.protobuf.*;
+import com.leruka.protobuf.ErrorCodes;
+
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
@@ -11,25 +14,22 @@ public class Helper {
     public static void answerError(
             HttpServletResponse response,
             int statusCode,
-            int errorCode,
-            String message) {
-
-        //TODO this needs a rework!
+            byte[] message
+    ) {
 
         // Set the response Code
         response.setStatus(statusCode);
-        // Create tht response Json
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("success=false;errorCode=").append(errorCode).append("errorMessage=").append(message);
 
         // Write the response
         try {
-            response.getWriter().write(sb.toString());
-            response.flushBuffer();
+            response.getOutputStream().write(message);
+            response.getOutputStream().flush();
         } catch (IOException e) {
             // nothing to do than logging the error
             e.printStackTrace();
         }
+
     }
+
+
 }

@@ -1,6 +1,6 @@
 package com.leruka.server.user;
 
-import com.leruka.server.ErrorCodes;
+import com.leruka.protobuf.ErrorCodes;
 import com.leruka.server.HttpStatics;
 import com.leruka.server.Helper;
 import com.leruka.server.Log;
@@ -21,9 +21,11 @@ public class Register extends javax.servlet.http.HttpServlet {
         if (!request.getContentType().equals("application/x-protobuf")) {
             Helper.answerError(response,
                     HttpStatics.HTTP_STATUS_WRONG_CONTENT_TYPE,
-                    ErrorCodes.REQUEST_CONTENT_TYPE_NOT_JSON,
-                    "To create a user, use the register protobuf message.");
-            Log.inf("Register request with wrong content type. canceling.");
+                    User.ResponseRegister.newBuilder()
+                        .setSuccess(false)
+                        .addErrorCode(ErrorCodes.ErrorCode.REQUEST_WRONG_CONTENT_TYPE)
+                            .build().toByteArray()
+                    );
             return;
         }
 
@@ -34,8 +36,15 @@ public class Register extends javax.servlet.http.HttpServlet {
 
         // Validate
         if (!Validation.isValidUserPw(userName, userPass)) {
-            Log.inf("Register request with invalid parameters received.");
-            response.setStatus(HttpStatics.HTTP_STATUS_INVALID_PARAMS);
+            //TODO differentiate between invalid name / invalid pass
+            Helper.answerError(
+                    response,
+                    HttpStatics.HTTP_STATUS_INVALID_PARAMS,
+                    User.ResponseRegister.newBuilder()
+                            .setSuccess(false)
+                            .addErrorCode(ErrorCodes.ErrorCode.USER_NAME_INVALID)
+                            .build().toByteArray()
+            );
             return;
         }
 
@@ -43,21 +52,21 @@ public class Register extends javax.servlet.http.HttpServlet {
         try {
             createNewUser(userName, userPass);
         } catch (SQLException e) {
-            response.setStatus(HttpStatics.HTTP_STATUS_SQL_EXCEPTION);
-            Log.wrn("Could create a new user, due to a SQL exception!");
-            Log.inf("Error Code: " + e.getErrorCode());
-            Log.inf("Error Message: " + e.getMessage());
             // Answer with message: user used
-            Helper.answerError(response, HttpStatics.HTTP_STATUS_SQL_EXCEPTION, ErrorCodes.USER_NAME_USED,
-                    "The username is already used");
+            Helper.answerError(
+                    response,
+                    HttpStatics.HTTP_STATUS_SQL_EXCEPTION,
+                    User.ResponseRegister.newBuilder()
+                        .setSuccess(false)
+                        .addErrorCode(ErrorCodes.ErrorCode.REGISTER_NAME_USED)
+                            .build().toByteArray());
             return;
         }
 
-        // Log the successful result
-        Log.inf("successfully created user " + userName);
+        // login
+        User.ResponseLogin login = Login.doDefaultLogin(userName, userPass);
 
-        // login. This will also response
-        Login.doDefaultLogin(userName, userPass, response);
+        Login.respond(login, response);
     }
 
     /**

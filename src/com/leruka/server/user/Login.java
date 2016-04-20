@@ -1,6 +1,6 @@
 package com.leruka.server.user;
 
-import com.leruka.server.ErrorCodes;
+import com.leruka.protobuf.ErrorCodes;
 import com.leruka.server.Helper;
 import com.leruka.server.HttpStatics;
 import com.leruka.server.db.DatabaseConnection;
@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.*;
+import java.util.Arrays;
 import java.util.UUID;
 
 import com.leruka.protobuf.User;
@@ -27,10 +28,14 @@ public class Login extends HttpServlet {
 
         // Check content Type
         if (!request.getContentType().equals("application/x-protobuf")) {
-            Helper.answerError(response,
+            Helper.answerError(
+                    response,
                     HttpStatics.HTTP_STATUS_WRONG_CONTENT_TYPE,
-                    ErrorCodes.REQUEST_CONTENT_TYPE_NOT_JSON,
-                    "To log in, use the login protobuf message.");
+                    User.ResponseLogin.newBuilder()
+                        .setSuccess(false)
+                        .addErrorCode(ErrorCodes.ErrorCode.REQUEST_WRONG_CONTENT_TYPE)
+                            .build().toByteArray()
+                    );
             return;
         }
 
@@ -41,12 +46,23 @@ public class Login extends HttpServlet {
 
         // Validate syntactical
         if (!Validation.isValidUserPw(userName, userPass)) {
-            Helper.answerError(response, HttpStatics.HTTP_STATUS_INVALID_PARAMS, ErrorCodes.USER_PASS_INVALID, "NEIN");
+            //TODO differentiate between invalid name / invalid pass
+            Helper.answerError(
+                    response,
+                    HttpStatics.HTTP_STATUS_INVALID_PARAMS,
+                    User.ResponseLogin.newBuilder()
+                        .setSuccess(false)
+                        .addErrorCode(ErrorCodes.ErrorCode.USER_NAME_INVALID)
+                            .build().toByteArray()
+                    );
             return;
         }
 
         // login
-        doDefaultLogin(userName, userPass, response);
+        User.ResponseLogin login = doDefaultLogin(userName, userPass);
+
+        // Respond
+        Login.respond(login, response);
 
     }
 
@@ -54,7 +70,7 @@ public class Login extends HttpServlet {
         response.setStatus(HttpStatics.HTTP_STATUS_WRONG_METHOD);
     }
 
-    static UUID login(String userName, String userPass) throws InvalidParameterException, SQLException {
+    private static UUID login(String userName, String userPass) throws InvalidParameterException, SQLException {
 
         // Get userID, salt and stored password
         DatabaseUser databaseUser = getDatabaseUser(userName);
@@ -65,7 +81,7 @@ public class Login extends HttpServlet {
                 databaseUser.getDbPass(),
                 databaseUser.getSalt()
         )) {
-            throw new InvalidParameterException("The given Password does not match!", ErrorCodes.USER_PASS_INVALID);
+            throw new InvalidParameterException("The given Password does not match!", ErrorCodes.ErrorCode.LOGIN_PASS_WRONG);
         }
 
         // create session
@@ -73,7 +89,8 @@ public class Login extends HttpServlet {
 
     }
 
-    static void doDefaultLogin(String userName, String userPass, HttpServletResponse response) throws IOException {
+    static User.ResponseLogin doDefaultLogin(String userName, String userPass)
+            throws IOException {
         //TODO check for specific SQL exceptions and give corresponding error messages
         //TODO Respond with protobuf objects on errors
         // login
@@ -81,26 +98,28 @@ public class Login extends HttpServlet {
         try {
             sid = login(userName, userPass);
         } catch (InvalidParameterException e) {
-            Helper.answerError(response, HttpStatics.HTTP_STATUS_INVALID_PARAMS, e.getErrorCode(), e.getMessage());
-            e.printStackTrace();
-            return;
+            return createErrorResponse(e.getErrorCode());
         } catch (SQLException e) {
-            Helper.answerError(response,
-                    HttpStatics.HTTP_STATUS_SQL_EXCEPTION,
-                    ErrorCodes.DB_UNKNOWN_ERROR,
-                    "There was an error in the database while trying to log in.");
-            e.printStackTrace();
-            return;
+            return createErrorResponse(ErrorCodes.ErrorCode.DB_UNKNOWN_ERROR);
         }
 
         // return the new session ID
-        User.ResponseLogin responseObject = User.ResponseLogin.newBuilder()
+        return User.ResponseLogin.newBuilder()
                 .setSuccess(true)
                 .setSessionID(sid.toString())
                 .build();
+    }
 
-        response.getOutputStream().write(responseObject.toByteArray());
-        response.getOutputStream().flush();
+    static void respond(User.ResponseLogin login, HttpServletResponse response) {
+        if (login.getSuccess()) {
+            Helper.answerError(response, 200, login.toByteArray());
+        }
+        else if (login.getErrorCodeCount() > 0) {
+            Helper.answerError(response, HttpStatics.fromInternalErrorCode(login.getErrorCode(0)), login.toByteArray());
+        }
+        else {
+            Helper.answerError(response, HttpStatics.HTTP_STATUS_UNKNOWN_SERVER_ERROR, login.toByteArray());
+        }
     }
 
     private static boolean isPasswordValid(String userPass, String dbPass, String salt) throws SQLException {
@@ -137,14 +156,26 @@ public class Login extends HttpServlet {
             );
         }
         else {
-            throw new InvalidParameterException("The given Username could not be found", ErrorCodes.USER_NAME_INVALID);
+            throw new InvalidParameterException("The given Username could not be found", ErrorCodes.ErrorCode.LOGIN_NAME_UNKNOWN);
         }
 
         // Check for a second result
         if (rs.next()) {
-            Log.wrn("Multiple matches for one username!");
+            Log.wrn("Multiple matches for one username '" + userName  + "'!");
         }
+
         return dbUser;
+    }
+
+    private static User.ResponseLogin createErrorResponse(ErrorCodes.ErrorCode[] codes) {
+        return User.ResponseLogin.newBuilder()
+                .setSuccess(false)
+                .addAllErrorCode(Arrays.asList(codes))
+                .build();
+    }
+
+    private static User.ResponseLogin createErrorResponse(ErrorCodes.ErrorCode code) {
+        return createErrorResponse(new ErrorCodes.ErrorCode[] { code });
     }
 
     private static class DatabaseUser {
