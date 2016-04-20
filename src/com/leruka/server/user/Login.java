@@ -123,7 +123,7 @@ public class Login extends HttpServlet {
     private static DatabaseUser getDatabaseUser(String userName) throws InvalidParameterException, SQLException {
         DatabaseUser dbUser;
         PreparedStatement st = com.leruka.server.db.DatabaseConnection.getCurrentConnection().prepareStatement(
-                "SELECT userID, salt, passwordHash FROM lerukatest.User WHERE BINARY name = ?"
+                "SELECT userID, salt, passwordHash FROM lerukatest.User WHERE name = ?"
         );
         st.setString(1, userName);
         ResultSet rs = st.executeQuery();
