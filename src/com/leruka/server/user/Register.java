@@ -53,6 +53,7 @@ public class Register extends javax.servlet.http.HttpServlet {
             createNewUser(userName, userPass);
         } catch (SQLException e) {
             // Answer with message: user used
+            //TODO check for sql error code
             Helper.answerError(
                     response,
                     HttpStatics.HTTP_STATUS_SQL_EXCEPTION,
@@ -66,7 +67,12 @@ public class Register extends javax.servlet.http.HttpServlet {
         // login
         User.ResponseLogin login = Login.doDefaultLogin(userName, userPass);
 
-        Login.respond(login, response);
+        // Answer
+        Helper.answerError(response, 200,
+                User.ResponseRegister.newBuilder()
+                .setSuccess(true)
+                .setLogin(login)
+                    .build().toByteArray());
     }
 
     /**
