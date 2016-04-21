@@ -1,6 +1,8 @@
 package com.leruka.server.highscore;
 
+import com.leruka.protobuf.ErrorCodes;
 import com.leruka.protobuf.Highscore;
+import com.leruka.server.Helper;
 import com.leruka.server.HttpStatics;
 import com.leruka.server.Log;
 import com.leruka.server.db.DatabaseConnection;
@@ -42,8 +44,15 @@ public class PublicHighscore extends HttpServlet {
             }
         } catch (SQLException e) {
             //TODO If fetching does not work, respond with an error
-            e.printStackTrace();
-            response.getWriter().write(e.getMessage());
+            Helper.answerError(
+                    response,
+                    HttpStatics.HTTP_STATUS_SQL_EXCEPTION,
+                    Highscore.ResponseScores.newBuilder()
+                            .setSuccess(false)
+                            .addErrorCode(ErrorCodes.ErrorCode.DB_UNKNOWN_ERROR)
+                            .build().toByteArray()
+            );
+            return;
         }
 
         // Create the response

@@ -1,11 +1,9 @@
 package com.leruka.server.highscore;
 
+import com.leruka.protobuf.ErrorCodes;
 import com.leruka.protobuf.Highscore;
-import com.leruka.protobuf.User;
-import com.leruka.server.ErrorCodes;
 import com.leruka.server.Helper;
 import com.leruka.server.HttpStatics;
-import com.leruka.server.Log;
 import com.leruka.server.db.DatabaseConnection;
 import com.leruka.server.user.SessionManager;
 
@@ -19,7 +17,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Created by leif on 15.04.16.
@@ -32,8 +29,10 @@ public class PrivateHighscore extends HttpServlet {
         if (!request.getContentType().equals("application/x-protobuf")) {
             Helper.answerError(response,
                     HttpStatics.HTTP_STATUS_WRONG_CONTENT_TYPE,
-                    ErrorCodes.REQUEST_CONTENT_TYPE_NOT_JSON,
-                    "To create a user, use the register protobuf message.");
+                    Highscore.ResponseScores.newBuilder()
+                        .setSuccess(false)
+                        .addErrorCode(ErrorCodes.ErrorCode.REQUEST_WRONG_CONTENT_TYPE)
+                            .build().toByteArray());
             return;
         }
 
@@ -45,20 +44,27 @@ public class PrivateHighscore extends HttpServlet {
         }
         catch (IllegalArgumentException e) {
             // Illegal session id
+            //TODO add error code REQUEST_SESSION_ID_INVALID
             Helper.answerError(response,
                     HttpStatics.HTTP_STATUS_INVALID_PARAMS,
-                    0,
-                    "The given session id is invalid.");
+                    Highscore.ResponseScores.newBuilder()
+                    .setSuccess(false)
+                    .addErrorCode(ErrorCodes.ErrorCode.UNKNOWN)
+                        .build().toByteArray());
             return;
         }
 
         // If the session is expired
         //TODO improve
         if (userID < 0) {
+            //TODO add error code REQUEST_SESSION_EXPIRED
             Helper.answerError(response,
-                    200,
-                    0,
-                    "The session is expired");
+                    HttpStatics.HTTP_STATUS_INVALID_PARAMS,
+                    Highscore.ResponseScores.newBuilder()
+                            .setSuccess(false)
+                            .addErrorCode(ErrorCodes.ErrorCode.UNKNOWN)
+                            .build().toByteArray());
+            return;
         }
 
         // Get recent data
@@ -79,8 +85,15 @@ public class PrivateHighscore extends HttpServlet {
             }
         } catch (SQLException e) {
             //TODO If fetching does not work, respond with an error
-            e.printStackTrace();
-            response.getWriter().write(e.getMessage());
+            Helper.answerError(
+                    response,
+                    HttpStatics.HTTP_STATUS_SQL_EXCEPTION,
+                    Highscore.ResponseScores.newBuilder()
+                        .setSuccess(false)
+                        .addErrorCode(ErrorCodes.ErrorCode.DB_UNKNOWN_ERROR)
+                            .build().toByteArray()
+            );
+            return;
         }
 
         // Create the response
