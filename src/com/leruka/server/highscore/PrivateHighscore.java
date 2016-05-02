@@ -23,46 +23,51 @@ import java.util.List;
  */
 public class PrivateHighscore extends HttpServlet {
 
+    private static byte[] WRONG_CONTENT_RESPONSE = Highscore.ResponseScores.newBuilder()
+            .setSuccess(false)
+            .addErrorCode(ErrorCodes.ErrorCode.REQUEST_WRONG_CONTENT_TYPE)
+            .build().toByteArray();
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         // Check content Type
-        if (!request.getContentType().equals("application/x-protobuf")) {
-            Helper.answerError(response,
-                    HttpStatics.HTTP_STATUS_WRONG_CONTENT_TYPE,
-                    Highscore.ResponseScores.newBuilder()
-                        .setSuccess(false)
-                        .addErrorCode(ErrorCodes.ErrorCode.REQUEST_WRONG_CONTENT_TYPE)
-                            .build().toByteArray());
+        if (!Helper.checkContentType(request.getContentType(), "application/x-protobuf", WRONG_CONTENT_RESPONSE, response)) {
             return;
         }
 
         // Get user id
-        Highscore.RequestPrivateScore requestObject = Highscore.RequestPrivateScore.parseFrom(request.getInputStream());
         int userID;
         try {
+            Highscore.RequestPrivateScore requestObject = Highscore.RequestPrivateScore.parseFrom(request.getInputStream());
             userID = SessionManager.getUserID(requestObject.getSessionID());
+        }
+        catch (IOException e) {
+            // Not a valid protobuf
+            Helper.answerError(response,
+                    HttpStatics.HTTP_STATUS_INVALID_PARAMS,
+                    Highscore.ResponseScores.newBuilder()
+                        .setSuccess(false)
+                        .addErrorCode(ErrorCodes.ErrorCode.REQUEST_CANNOT_PARSE_INPUT));
+            return;
         }
         catch (IllegalArgumentException e) {
             // Illegal session id
-            //TODO add error code REQUEST_SESSION_ID_INVALID
             Helper.answerError(response,
                     HttpStatics.HTTP_STATUS_INVALID_PARAMS,
                     Highscore.ResponseScores.newBuilder()
                     .setSuccess(false)
-                    .addErrorCode(ErrorCodes.ErrorCode.UNKNOWN)
+                    .addErrorCode(ErrorCodes.ErrorCode.REQUEST_SESSION_ID_INVALID)
                         .build().toByteArray());
             return;
         }
 
         // If the session is expired
-        //TODO improve
         if (userID < 0) {
-            //TODO add error code REQUEST_SESSION_EXPIRED
             Helper.answerError(response,
                     HttpStatics.HTTP_STATUS_INVALID_PARAMS,
                     Highscore.ResponseScores.newBuilder()
                             .setSuccess(false)
-                            .addErrorCode(ErrorCodes.ErrorCode.UNKNOWN)
+                            .addErrorCode(ErrorCodes.ErrorCode.REQUEST_SESSION_EXPIRED)
                             .build().toByteArray());
             return;
         }

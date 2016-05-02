@@ -3,7 +3,6 @@ package com.leruka.server.user;
 import com.leruka.protobuf.ErrorCodes;
 import com.leruka.server.HttpStatics;
 import com.leruka.server.Helper;
-import com.leruka.server.Log;
 import com.leruka.server.db.DatabaseConnection;
 
 import com.leruka.protobuf.User;

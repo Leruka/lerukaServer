@@ -31,5 +31,22 @@ public class Helper {
 
     }
 
+    public static boolean checkContentType(
+            String sendContent,
+            String expectedContent,
+            byte[] failureAnswer,
+            HttpServletResponse response
+    ) {
+        if (sendContent.equals(expectedContent)) {
+            return true;
+        }
+        Helper.answerError(
+                response,
+                HttpStatics.HTTP_STATUS_WRONG_CONTENT_TYPE,
+                failureAnswer
+        );
+        return false;
+    }
+
 
 }
