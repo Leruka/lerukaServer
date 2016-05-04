@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * Created by leif on 15.04.16.
  */
-public class PrivateHighscore extends HttpServlet {
+public class PrivateHighscore extends GenericHighscore {
 
     private static byte[] WRONG_CONTENT_RESPONSE = Highscore.ResponseScores.newBuilder()
             .setSuccess(false)
@@ -101,16 +101,6 @@ public class PrivateHighscore extends HttpServlet {
         }
 
         return data;
-    }
-
-    private void sendScoreData(List<Highscore.Score> scores, HttpServletResponse response) throws IOException {
-        // Create the response
-        Highscore.ResponseScores responseObject = Highscore.ResponseScores.newBuilder()
-                .addAllScores(scores).build();
-
-        // send response
-        response.getOutputStream().write(responseObject.toByteArray());
-        response.getOutputStream().flush();
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
