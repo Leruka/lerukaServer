@@ -28,82 +28,85 @@ public class PrivateHighscore extends HttpServlet {
             .addErrorCode(ErrorCodes.ErrorCode.REQUEST_WRONG_CONTENT_TYPE)
             .build().toByteArray();
 
+    private static String EXPECTED_CONTENT = "application/x-protobuf";
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         // Check content Type
-        if (!Helper.checkContentType(request.getContentType(), "application/x-protobuf", WRONG_CONTENT_RESPONSE, response)) {
+        if (!Helper.checkContentType(request.getContentType(), EXPECTED_CONTENT, WRONG_CONTENT_RESPONSE, response)) {
             return;
         }
-
         // Get user id
         int userID;
         try {
             Highscore.RequestPrivateScore requestObject = Highscore.RequestPrivateScore.parseFrom(request.getInputStream());
             userID = SessionManager.getUserID(requestObject.getSessionID());
         }
+        // Not a valid protobuf
         catch (IOException e) {
-            // Not a valid protobuf
             Helper.answerError(response,
                     HttpStatics.HTTP_STATUS_INVALID_PARAMS,
-                    Highscore.ResponseScores.newBuilder()
-                        .setSuccess(false)
-                        .addErrorCode(ErrorCodes.ErrorCode.REQUEST_CANNOT_PARSE_INPUT));
+                    ErrorResponse.build(ErrorCodes.ErrorCode.REQUEST_CANNOT_PARSE_INPUT).toByteArray());
             return;
         }
+        // Illegal session id
         catch (IllegalArgumentException e) {
-            // Illegal session id
             Helper.answerError(response,
                     HttpStatics.HTTP_STATUS_INVALID_PARAMS,
-                    Highscore.ResponseScores.newBuilder()
-                    .setSuccess(false)
-                    .addErrorCode(ErrorCodes.ErrorCode.REQUEST_SESSION_ID_INVALID)
-                        .build().toByteArray());
+                    ErrorResponse.build(ErrorCodes.ErrorCode.REQUEST_SESSION_ID_INVALID).toByteArray());
             return;
         }
-
-        // If the session is expired
+        // Session is expired
         if (userID < 0) {
             Helper.answerError(response,
                     HttpStatics.HTTP_STATUS_INVALID_PARAMS,
-                    Highscore.ResponseScores.newBuilder()
-                            .setSuccess(false)
-                            .addErrorCode(ErrorCodes.ErrorCode.REQUEST_SESSION_EXPIRED)
-                            .build().toByteArray());
+                    ErrorResponse.build(ErrorCodes.ErrorCode.REQUEST_SESSION_EXPIRED).toByteArray());
             return;
         }
 
         // Get recent data
-        List<Highscore.Score> data = new ArrayList<>();
+        List<Highscore.Score> data;
         try {
-            CallableStatement proc = DatabaseConnection.getCurrentConnection()
-                    .prepareCall("{ call get_private_score(?) }");
-            proc.setInt(1, userID);
-            ResultSet rs = proc.executeQuery();
-
-            int rankCount = 0;
-            while(rs.next()) {
-                data.add(Highscore.Score.newBuilder()
-                        .setScore(rs.getInt("score"))
-                        .setRank(++rankCount)
-                        .setTimestamp(rs.getDate("date").getTime()).build()
-                );
-            }
-        } catch (SQLException e) {
-            //TODO If fetching does not work, respond with an error
-            Helper.answerError(
-                    response,
+            data = this.getScoreData(userID);
+        }
+        // Cannot fetch from DB
+        catch (SQLException e) {
+            //TODO Check for the DB Error (maybe give more information on what went wrong)
+            Helper.answerError(response,
                     HttpStatics.HTTP_STATUS_SQL_EXCEPTION,
-                    Highscore.ResponseScores.newBuilder()
-                        .setSuccess(false)
-                        .addErrorCode(ErrorCodes.ErrorCode.DB_UNKNOWN_ERROR)
-                            .build().toByteArray()
-            );
+                    ErrorResponse.build(ErrorCodes.ErrorCode.DB_UNKNOWN_ERROR).toByteArray());
             return;
         }
 
+        this.sendScoreData(data, response);
+    }
+
+    private List<Highscore.Score> getScoreData(int userID) throws SQLException {
+        List<Highscore.Score> data = new ArrayList<>();
+
+        // Create the SQL statement
+        CallableStatement proc = DatabaseConnection.getCurrentConnection()
+                .prepareCall("{ call get_private_score(?) }");
+        proc.setInt(1, userID);
+
+        // Gather the data
+        ResultSet rs = proc.executeQuery();
+        int rankCount = 0;
+        while(rs.next()) {
+            data.add(Highscore.Score.newBuilder()
+                    .setScore(rs.getInt("score"))
+                    .setRank(++rankCount)
+                    .setTimestamp(rs.getDate("date").getTime()).build()
+            );
+        }
+
+        return data;
+    }
+
+    private void sendScoreData(List<Highscore.Score> scores, HttpServletResponse response) throws IOException {
         // Create the response
         Highscore.ResponseScores responseObject = Highscore.ResponseScores.newBuilder()
-                .addAllScores(data).build();
+                .addAllScores(scores).build();
 
         // send response
         response.getOutputStream().write(responseObject.toByteArray());
@@ -113,4 +116,5 @@ public class PrivateHighscore extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setStatus(HttpStatics.HTTP_STATUS_WRONG_METHOD);
     }
+
 }
