@@ -106,7 +106,7 @@ public final class Highscore {
       return Highscore.internal_static_leruka_RequestGlobalScores_descriptor;
     }
 
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+    protected FieldAccessorTable
         internalGetFieldAccessorTable() {
       return Highscore.internal_static_leruka_RequestGlobalScores_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
@@ -276,7 +276,7 @@ public final class Highscore {
 
     @Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
@@ -292,7 +292,7 @@ public final class Highscore {
         return Highscore.internal_static_leruka_RequestGlobalScores_descriptor;
       }
 
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      protected FieldAccessorTable
           internalGetFieldAccessorTable() {
         return Highscore.internal_static_leruka_RequestGlobalScores_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
@@ -305,7 +305,7 @@ public final class Highscore {
       }
 
       private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
@@ -668,7 +668,7 @@ public final class Highscore {
       return Highscore.internal_static_leruka_RequestPrivateScore_descriptor;
     }
 
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+    protected FieldAccessorTable
         internalGetFieldAccessorTable() {
       return Highscore.internal_static_leruka_RequestPrivateScore_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
@@ -846,7 +846,7 @@ public final class Highscore {
 
     @Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
@@ -862,7 +862,7 @@ public final class Highscore {
         return Highscore.internal_static_leruka_RequestPrivateScore_descriptor;
       }
 
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      protected FieldAccessorTable
           internalGetFieldAccessorTable() {
         return Highscore.internal_static_leruka_RequestPrivateScore_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
@@ -875,7 +875,7 @@ public final class Highscore {
       }
 
       private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
@@ -1329,7 +1329,7 @@ public final class Highscore {
       return Highscore.internal_static_leruka_ResponseScores_descriptor;
     }
 
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+    protected FieldAccessorTable
         internalGetFieldAccessorTable() {
       return Highscore.internal_static_leruka_ResponseScores_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
@@ -1591,7 +1591,7 @@ public final class Highscore {
 
     @Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
@@ -1607,7 +1607,7 @@ public final class Highscore {
         return Highscore.internal_static_leruka_ResponseScores_descriptor;
       }
 
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      protected FieldAccessorTable
           internalGetFieldAccessorTable() {
         return Highscore.internal_static_leruka_ResponseScores_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
@@ -1620,7 +1620,7 @@ public final class Highscore {
       }
 
       private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
@@ -2388,7 +2388,7 @@ public final class Highscore {
       return Highscore.internal_static_leruka_Score_descriptor;
     }
 
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+    protected FieldAccessorTable
         internalGetFieldAccessorTable() {
       return Highscore.internal_static_leruka_Score_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
@@ -2574,7 +2574,7 @@ public final class Highscore {
 
     @Override
     protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        BuilderParent parent) {
       Builder builder = new Builder(parent);
       return builder;
     }
@@ -2590,7 +2590,7 @@ public final class Highscore {
         return Highscore.internal_static_leruka_Score_descriptor;
       }
 
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      protected FieldAccessorTable
           internalGetFieldAccessorTable() {
         return Highscore.internal_static_leruka_Score_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
@@ -2603,7 +2603,7 @@ public final class Highscore {
       }
 
       private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+          BuilderParent parent) {
         super(parent);
         maybeForceBuilderInitialization();
       }
