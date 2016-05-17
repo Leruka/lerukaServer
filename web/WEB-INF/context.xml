@@ -40,4 +40,13 @@
         <url-pattern>/login</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>ChangeSettings</servlet-name>
+        <servlet-class>com.leruka.server.user.ChangeSettings</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ChangeSettings</servlet-name>
+        <url-pattern>/changesettings</url-pattern>
+    </servlet-mapping>
+
 </web-app>

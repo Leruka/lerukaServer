@@ -122,7 +122,7 @@ public class Login extends HttpServlet {
         }
     }
 
-    private static boolean isPasswordValid(String userPass, String dbPass, String salt) throws SQLException {
+    static boolean isPasswordValid(String userPass, String dbPass, String salt) throws SQLException {
         // hash the password in the database to ensure, that hashing is always done the same way
         CallableStatement st = DatabaseConnection.getCurrentConnection().prepareCall(
                 "{ ? = call hash_pw(?,?) }"
@@ -167,6 +167,34 @@ public class Login extends HttpServlet {
         return dbUser;
     }
 
+    static DatabaseUser getDatabaseUser(int userID) throws InvalidParameterException, SQLException {
+        DatabaseUser dbUser;
+        PreparedStatement st = com.leruka.server.db.DatabaseConnection.getCurrentConnection().prepareStatement(
+                "SELECT salt, passwordHash FROM lerukatest.User WHERE userID = ?"
+        );
+        st.setInt(1, userID);
+        ResultSet rs = st.executeQuery();
+
+        // Get strings from result
+        if (rs.next()) {
+            dbUser = new DatabaseUser(
+                    userID,
+                    rs.getString(1),
+                    rs.getString(2)
+            );
+        }
+        else {
+            throw new InvalidParameterException("The given user id could not be found.", ErrorCodes.ErrorCode.DB_UNKNOWN_ERROR);
+        }
+
+        // Check for a second result
+        if (rs.next()) {
+            Log.wrn("Multiple matches for one user id '" + userID + "'!");
+        }
+
+        return dbUser;
+    }
+
     private static User.ResponseLogin createErrorResponse(ErrorCodes.ErrorCode[] codes) {
         return User.ResponseLogin.newBuilder()
                 .setSuccess(false)
@@ -178,26 +206,4 @@ public class Login extends HttpServlet {
         return createErrorResponse(new ErrorCodes.ErrorCode[] { code });
     }
 
-    private static class DatabaseUser {
-        private int userID;
-        private String salt, dbPass;
-
-        DatabaseUser(int userID, String salt, String dbPass) {
-            this.userID = userID;
-            this.salt = salt;
-            this.dbPass = dbPass;
-        }
-
-        int getUserID() {
-            return userID;
-        }
-
-        String getSalt() {
-            return salt;
-        }
-
-        String getDbPass() {
-            return dbPass;
-        }
-    }
 }

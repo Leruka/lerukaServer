@@ -1,12 +1,12 @@
 package com.leruka.server.user;
 
 import com.leruka.protobuf.ErrorCodes;
-import com.leruka.protobuf.Highscore;
 import com.leruka.protobuf.User;
 import com.leruka.server.Helper;
 import com.leruka.server.HttpStatics;
+import com.leruka.server.Log;
 import com.leruka.server.db.DatabaseConnection;
-import com.leruka.server.highscore.ErrorResponse;
+import com.leruka.server.exception.InvalidParameterException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -63,10 +63,38 @@ public class ChangeSettings extends HttpServlet {
             return;
         }
 
+        // Get data from request
+        String oldPass = requestObject.getOldPassword();
         String newName = requestObject.getNewName();
         String newPass = requestObject.getNewPassword();
 
-        if (newName != null) {
+        // Check, if the password is correct
+        try {
+            DatabaseUser user = Login.getDatabaseUser(userID);
+            if (!Login.isPasswordValid(oldPass, user.getDbPass(), user.getSalt())) {
+                Helper.answerError(response, HttpStatics.HTTP_STATUS_INVALID_PARAMS,
+                        buildErrorResponse(ErrorCodes.ErrorCode.LOGIN_PASS_WRONG).toByteArray());
+                return;
+            }
+        }
+        // User id not found, send session expired
+        catch (InvalidParameterException e) {
+            e.printStackTrace();
+            Helper.answerError(response, HttpStatics.HTTP_STATUS_INVALID_PARAMS,
+                    buildErrorResponse(ErrorCodes.ErrorCode.REQUEST_SESSION_EXPIRED).toByteArray());
+            return;
+        }
+        // Unknown DB error
+        catch (SQLException e) {
+            e.printStackTrace();
+            Helper.answerError(response, HttpStatics.HTTP_STATUS_SQL_EXCEPTION,
+                    buildErrorResponse(ErrorCodes.ErrorCode.DB_UNKNOWN_ERROR).toByteArray());
+            return;
+        }
+
+        // Change Name
+
+        if (newName != null && !newName.isEmpty()) {
             try {
                 changeName(userID, newName);
             }
@@ -75,12 +103,14 @@ public class ChangeSettings extends HttpServlet {
                 e.printStackTrace();
                 Helper.answerError(response,
                         HttpStatics.HTTP_STATUS_SQL_EXCEPTION,
-                        buildErrorResponse(ErrorCodes.ErrorCode.UNKNOWN).toByteArray());
+                        buildErrorResponse(ErrorCodes.ErrorCode.REGISTER_NAME_USED).toByteArray());
                 return;
             }
         }
 
-        if (newPass != null) {
+        // Change Password
+
+        if (newPass != null && ! newPass.isEmpty()) {
             try {
                 changePass(userID, newPass);
             }
@@ -89,7 +119,7 @@ public class ChangeSettings extends HttpServlet {
                 e.printStackTrace();
                 Helper.answerError(response,
                         HttpStatics.HTTP_STATUS_SQL_EXCEPTION,
-                        buildErrorResponse(ErrorCodes.ErrorCode.UNKNOWN).toByteArray());
+                        buildErrorResponse(ErrorCodes.ErrorCode.USER_PASS_INVALID).toByteArray());
                 return;
             }
         }
@@ -115,6 +145,7 @@ public class ChangeSettings extends HttpServlet {
     }
 
     private void changePass(int userID, String newPass) throws SQLException {
+        Log.inf("change pass for uid: " + userID);
         CallableStatement proc = DatabaseConnection.getCurrentConnection()
                 .prepareCall("{ call change_password(?, ?) }");
         proc.setInt(1, userID);
