@@ -49,4 +49,22 @@
         <url-pattern>/changesettings</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>RateLevel</servlet-name>
+        <servlet-class>com.leruka.server.rating.RateLevel</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>RateLevel</servlet-name>
+        <url-pattern>/rate</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>GetRating</servlet-name>
+        <servlet-class>com.leruka.server.rating.GetRating</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>GetRating</servlet-name>
+        <url-pattern>/getrating</url-pattern>
+    </servlet-mapping>
+
 </web-app>
