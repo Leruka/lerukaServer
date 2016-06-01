@@ -23,12 +23,8 @@ import java.util.List;
  */
 public class PrivateHighscore extends GenericHighscore {
 
-    private static byte[] WRONG_CONTENT_RESPONSE = Highscore.ResponseScores.newBuilder()
-            .setSuccess(false)
-            .addErrorCode(ErrorCodes.ErrorCode.REQUEST_WRONG_CONTENT_TYPE)
-            .build().toByteArray();
 
-    private static String EXPECTED_CONTENT = "application/x-protobuf";
+
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
@@ -36,11 +32,10 @@ public class PrivateHighscore extends GenericHighscore {
         if (!Helper.checkContentType(request.getContentType(), EXPECTED_CONTENT, WRONG_CONTENT_RESPONSE, response)) {
             return;
         }
-        // Get user id
-        int userID;
+        // Parse proto
+        Highscore.RequestPrivateScore requestObject;
         try {
-            Highscore.RequestPrivateScore requestObject = Highscore.RequestPrivateScore.parseFrom(request.getInputStream());
-            userID = SessionManager.getUserID(requestObject.getSessionID());
+            requestObject = Highscore.RequestPrivateScore.parseFrom(request.getInputStream());
         }
         // Not a valid protobuf
         catch (IOException e) {
@@ -49,20 +44,10 @@ public class PrivateHighscore extends GenericHighscore {
                     ErrorResponse.build(ErrorCodes.ErrorCode.REQUEST_CANNOT_PARSE_INPUT).toByteArray());
             return;
         }
-        // Illegal session id
-        catch (IllegalArgumentException e) {
-            Helper.answerError(response,
-                    HttpStatics.HTTP_STATUS_INVALID_PARAMS,
-                    ErrorResponse.build(ErrorCodes.ErrorCode.REQUEST_SESSION_ID_INVALID).toByteArray());
-            return;
-        }
-        // Session is expired
-        if (userID < 0) {
-            Helper.answerError(response,
-                    HttpStatics.HTTP_STATUS_INVALID_PARAMS,
-                    ErrorResponse.build(ErrorCodes.ErrorCode.REQUEST_SESSION_EXPIRED).toByteArray());
-            return;
-        }
+
+        // Get user id
+        int userID = getUserID(requestObject.getSessionID(), response);
+        if (userID < 0) return;
 
         // Get recent data
         List<Highscore.Score> data;

@@ -23,6 +23,15 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>PushScore</servlet-name>
+        <servlet-class>com.leruka.server.highscore.PushHighscore</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>PushScore</servlet-name>
+        <url-pattern>/pushscore</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>Register</servlet-name>
         <servlet-class>com.leruka.server.user.Register</servlet-class>
     </servlet>
